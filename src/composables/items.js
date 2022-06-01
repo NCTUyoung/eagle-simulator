@@ -4,7 +4,7 @@ export default function(){
         {
             width: 2649,
             height: 1000,
-            url: 'images/3.png'
+            url: 'images/3.jpg'
         },
         {
             width: 1000,
@@ -41,7 +41,7 @@ export default function(){
         {
             width: 2649,
             height: 1000,
-            url: 'images/3.png'
+            url: 'images/3.jpg'
         },
         {
             width: 320,
@@ -51,7 +51,10 @@ export default function(){
         {
             width: 2649,
             height: 1000,
-            url: 'images/3.png'
+            url: 'images/3.jpg'
         },
-    ])
+    ]);
+    return{
+        items
+    }
 }

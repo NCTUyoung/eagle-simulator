@@ -1,9 +1,16 @@
 <template>
-  <div ref="centerRoot" class="top-layout">
-    <div class="justified-container flex flex-wrap">
+  <div  class="top-layout bg-slate-800">
+    <div ref="v_leftPannel" class="left-side  ">
+      <span v-cloak>center width {{ config.elementWidth }}</span> 
+      <div class="drag-handle h-full bg-slate-600 inline-flex hover:cursor-ew-resize" v-on:mousedown="initResize"></div>
+    </div>
+    <div ref="centerRoot" class="center inline-flex justified-container  flex-wrap">
       <div class="justified-item " v-for="(box, index) in layout" :key="index" :style="box.style">
         <img class="h-full " :src="box.item.url">
       </div>
+    </div>
+    <div class="right-side">
+
     </div>
   </div>
 
@@ -15,65 +22,14 @@
 <script setup>
 import justifiedLayout from 'justified-layout'
 import { reactive, onMounted, onUnmounted ,computed,watch,ref} from 'vue'
-import justify_config from '@/composables/getConfig.js'
+import justify_config from '@/src/composables/getConfig.js'
+import getItems from '@/src/composables/items.js'
 let {config} = justify_config()
+let {items} = getItems()
 
-let items = reactive([
-  {
-    width: 2649,
-    height: 1000,
-    url: 'images/3.png'
-  },
-  {
-    width: 1000,
-    height: 1254,
-    url: 'images/0.jpg'
-  }, {
-    width: 300,
-    height: 400,
-    url: 'https://source.unsplash.com/featured/300x400?green,blue'
-  }, {
-    width: 270,
-    height: 400,
-    url: 'https://source.unsplash.com/featured/270x400?green,blue'
-  }, {
-    width: 320,
-    height: 400,
-    url: 'https://source.unsplash.com/featured/320x400?green,blue'
-  },
-  {
-    width: 320,
-    height: 400,
-    url: 'https://source.unsplash.com/featured/320x400?green,blue'
-  },
-  {
-    width: 250,
-    height: 400,
-    url: 'https://source.unsplash.com/featured/250x400?green,blue'
-  },
-  {
-    width: 250,
-    height: 400,
-    url: 'https://source.unsplash.com/featured/250x400?green,blue'
-  },
-  {
-    width: 2649,
-    height: 1000,
-    url: 'images/3.png'
-  },
-  {
-    width: 320,
-    height: 400,
-    url: 'https://source.unsplash.com/featured/320x400?green,blue'
-  },
-  {
-    width: 2649,
-    height: 1000,
-    url: 'images/3.png'
-  },
-])
 
 const centerRoot = ref(null)
+const v_leftPannel = ref(null)
 const geometry = computed(() => {
   if (!items) return {}
   const opts = {
@@ -87,7 +43,7 @@ const layout = computed(() => {
   return geometry.value.boxes.map((b, i) => ({
     item: isNaN(items[i]) ? items[i] : {},
     style: {
-      height: `${b.height}px`,
+      height: `${b.height}px`+20,
       width: `${b.width}px`,
       margin: `0px ${config.options.boxSpacing.horizontal / 2}px 0px ${config.options.boxSpacing.horizontal / 2}px `
       // top: `${b.top}px`,
@@ -122,12 +78,34 @@ const onResize = () => {
   config.elementWidth = centerRoot.value.clientWidth
 }
 onMounted(() => {
-  config.elementWidth = config.options.containerWidth || centerRoot.value.clientWidth
+  console.log(centerRoot.value.clientWidth)
+
+  config.elementWidth =  centerRoot.value.clientWidth
   window.addEventListener('resize', onResize)
 })
 onUnmounted(() => {
   window.removeEventListener('resize', onResize)
 })
+
+
+let Resize = (e)=>{
+  console.log("resize")
+  onResize()
+  v_leftPannel.value.style.width = (e.clientX - v_leftPannel.value.offsetLeft) + 'px';
+  document.body.style.cursor = 'ew-resize'
+}
+
+let initResize = ()=>{
+  console.log("initResize")
+  window.addEventListener('mousemove',Resize,false);
+  window.addEventListener('mouseup',stopResize,false);
+}
+
+let stopResize = ()=>{
+  window.removeEventListener('mousemove', Resize, false);
+  window.removeEventListener('mouseup', stopResize, false);
+  document.body.style.cursor = 'default'
+}
 </script>
 
 
@@ -135,23 +113,38 @@ onUnmounted(() => {
 .top-layout {
   background-color: rgb(55, 56, 60);
   min-height: 100vh;
-  max-width: 80vw;
+  display: flex;
+  /* max-width: 80vw; */
 }
-
-ul::after {
-  flex: 10000000;
-}
-
-.justified.container {
-  width: 100%;
+.left-side{
+  width: 20%;
+  min-height: 100vh;
   height: 100%;
-
+  display: inline-flex;
+  position: relative;
 }
-
+.center{
+  width: 50vw;
+  margin-left: 5px;
+  margin-right: 5%;
+}
+.right-side{
+  width: 20%;
+  min-height: 100vh;
+  height: 100%;
+  display: inline-flex;
+}
 .justified-item {
   cursor: pointer;
 }
-
+.drag-handle{
+  width: 10px;
+  height: 100%;
+  min-height: 100vh;
+  right: 0;
+  position: absolute
+  /* float: right; */
+}
 /* img {
     max-width: 100%;
 } */
