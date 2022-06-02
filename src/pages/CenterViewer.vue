@@ -90,6 +90,7 @@ onMounted(() => {
 
   config.elementWidth =  centerRoot.value.clientWidth
   window.addEventListener('resize', onResize)
+  onResize()
 })
 onUnmounted(() => {
   window.removeEventListener('resize', onResize)
@@ -97,7 +98,8 @@ onUnmounted(() => {
 
 
 let Resize = (e)=>{
-  console.log("resize")
+  if(e.stopPropagation) e.stopPropagation();
+  if(e.preventDefault) e.preventDefault();
   onResize()
   v_leftPannel.value.style.width = (e.clientX - v_leftPannel.value.offsetLeft) + 'px';
   document.body.style.cursor = 'ew-resize'
@@ -133,7 +135,7 @@ let stopResize = ()=>{
 }
 .center{
   width: 60vw;
-  margin-left: 5px;
+  margin-left: 10px;
   margin-right: 5%;
 }
 .right-side{
@@ -143,13 +145,13 @@ let stopResize = ()=>{
   display: inline-flex;
 }
 .justified-item {
-  cursor: pointer;
+  
   padding-left: 5px;
   padding-right: 5px;
 
 }
 .drag-handle{
-  width: 10px;
+  width: 15px;
   height: 100%;
   min-height: 100vh;
   right: 0;
@@ -158,6 +160,7 @@ let stopResize = ()=>{
 }
 img {
     /* border-width: 2px; */
+    cursor: pointer;
     box-sizing:content-box;
 }
 
