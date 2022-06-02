@@ -6,7 +6,8 @@
     </div>
     <div ref="centerRoot" class="center inline-flex justified-container  flex-wrap">
       <div class="justified-item " v-for="(box, index) in layout" :key="index" :style="box.style">
-        <img class="h-full " :src="box.item.url">
+        <img class="w-full border-2 border-transparent box-content rounded-lg hover:border-blue-500" :src="box.item.url" :style="box.imgStyle">
+        <span class="text-white text-xs">{{ box.item.url }}</span>
       </div>
     </div>
     <div class="right-side">
@@ -43,13 +44,20 @@ const layout = computed(() => {
   return geometry.value.boxes.map((b, i) => ({
     item: isNaN(items[i]) ? items[i] : {},
     style: {
-      height: `${b.height}px`+20,
+      height: `${b.height+50}px`,
       width: `${b.width}px`,
       margin: `0px ${config.options.boxSpacing.horizontal / 2}px 0px ${config.options.boxSpacing.horizontal / 2}px `
       // top: `${b.top}px`,
       // left: `${b.left}px`,
       // position: 'absolute'
-    }
+    },
+    imgStyle: {
+      height: `${b.height}px`,
+      // width: `${b.width}px`,
+      // margin: `0px ${config.options.boxSpacing.horizontal / 2}px 0px ${config.options.boxSpacing.horizontal / 2}px `
+
+    },
+
   }))
 })
 const style = computed(() => {
@@ -124,7 +132,7 @@ let stopResize = ()=>{
   position: relative;
 }
 .center{
-  width: 50vw;
+  width: 60vw;
   margin-left: 5px;
   margin-right: 5%;
 }
@@ -136,6 +144,9 @@ let stopResize = ()=>{
 }
 .justified-item {
   cursor: pointer;
+  padding-left: 5px;
+  padding-right: 5px;
+
 }
 .drag-handle{
   width: 10px;
@@ -145,9 +156,11 @@ let stopResize = ()=>{
   position: absolute
   /* float: right; */
 }
-/* img {
-    max-width: 100%;
-} */
+img {
+    /* border-width: 2px; */
+    box-sizing:content-box;
+}
+
 </style>
 
 
