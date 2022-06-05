@@ -2,6 +2,8 @@ import { reactive } from "vue";
 export default function(){
     let config = reactive({
         elementWidth: null,
+        leftWidth:300,
+        rightWidth:300,
         options: {
             containerPadding: {
                 top: 0,
@@ -14,7 +16,7 @@ export default function(){
                 vertical: 0
             },
             targetRowHeight: 250,
-            // targetRowHeightTolerance:0.3,
+            targetRowHeightTolerance:0.4,
             // forceAspectRatio: 1,
             showWidows: true,
             // fullWidthBreakoutRowCadence: 1

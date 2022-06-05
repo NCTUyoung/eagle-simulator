@@ -1,18 +1,32 @@
 <template>
-  <div  class="top-layout bg-slate-800">
+  <div  ref="v_top" class="top-layout bg-slate-800">
     <div ref="v_leftPannel" class="left-side  ">
       <span v-cloak>center width {{ config.elementWidth }}</span> 
       <div class="drag-handle h-full bg-slate-600 inline-flex hover:cursor-ew-resize" v-on:mousedown="initResize"></div>
     </div>
-    <div ref="centerRoot" class="center inline-flex justified-container  flex-wrap">
-      <div class="justified-item " v-for="(box, index) in layout" :key="index" :style="box.style">
+    <div ref="v_centerRoot" class="center inline-flex flex-wrap" id="v_centerRoot" v-show="!open">
+      <div class="justified-item " v-for="(box, index) in layout" :key="index" :style="box.style" v-on:dblclick="selectItem(index)">
         <img class="w-full border-2 border-transparent box-content rounded-lg hover:border-blue-500" :src="box.item.url" :style="box.imgStyle">
-        <span class="text-white text-xs">{{ box.item.url }}</span>
+        <div class="flex justify-center">
+          <span class="text-white text-sm text-center text-ellipsis w-16 truncate  overflow-hidden">{{ box.item.url }}</span>
+        </div>
+        <div class="flex justify-center">
+          <span class="text-xxs text-center  truncate  overflow-hidden text-slate-400">{{ box.item.width }} x {{ box.item.height }}</span>
+        </div>
       </div>
+      
+      
     </div>
-    <div class="right-side">
+    <div ref="v_imageViewer" class="center-viewer" v-show="open">
+        <p>Hello from the modal!</p>
+        <button @click="open = false">Close</button>
+    </div>
+    <div ref="v_rightPannel" class="right-side">
 
     </div>
+
+    
+
   </div>
 
 
@@ -29,8 +43,12 @@ let {config} = justify_config()
 let {items} = getItems()
 
 
-const centerRoot = ref(null)
+const v_centerRoot = ref(null)
+const v_imageViewer = ref(null)
 const v_leftPannel = ref(null)
+const v_rightPannel = ref(null)
+
+const v_top = ref(null)
 const geometry = computed(() => {
   if (!items) return {}
   const opts = {
@@ -67,6 +85,9 @@ const style = computed(() => {
     height: `${geometry.value.containerHeight}px`
   }
 })
+const centerStyle = computed(()=>{
+  return v_centerRoot.value.clientWidth - v_centerRoot.value.clientWidth - v_leftPannel.value.clientWidth
+})
 const row = computed(() => {
   let num_items = []
   let tmp_top = -1
@@ -82,37 +103,63 @@ const row = computed(() => {
   return num_items
 })
 const onResize = () => {
-  console.log(centerRoot.value.clientWidth)
-  config.elementWidth = centerRoot.value.clientWidth
+  console.log(v_top.value.clientWidth)
+  console.log(v_rightPannel.value.clientWidth)
+  console.log(v_leftPannel.value.clientWidth)
+  console.log("Center width",config.elementWidth)
+  config.leftWidth = v_leftPannel.value.clientWidth
+  config.rightWidth = v_rightPannel.value.clientWidth
+  config.elementWidth = v_top.value.clientWidth - config.leftWidth - config.rightWidth
+  v_centerRoot.value.style.width = config.elementWidth + 'px'
+}
+
+const open = ref(false)
+const selectItem = (key)=>{
+  open.value =true
+  v_imageViewer.value.style.width = config.elementWidth + 'px'
+
 }
 onMounted(() => {
-  console.log(centerRoot.value.clientWidth)
-
-  config.elementWidth =  centerRoot.value.clientWidth
+  console.log("Mount",v_centerRoot.value.clientWidth)
+  // console.log("Center width",config.elementWidth)
+  config.elementWidth = v_top.value.clientWidth - config.leftWidth - config.rightWidth
+  console.log("Center width",config.elementWidth)
   window.addEventListener('resize', onResize)
+  window.addEventListener('mousemove',mousePosition,false);
+
   onResize()
 })
 onUnmounted(() => {
   window.removeEventListener('resize', onResize)
 })
+let mouseX = ref(null)
+let mouseY = ref(null)
 
-
-let Resize = (e)=>{
+let mousePosition = (e)=>{
+  mouseX.value = e.clientX
+  mouseY.value = e.clientY
+}
+let ResizeLeftPannel = (e)=>{
   if(e.stopPropagation) e.stopPropagation();
   if(e.preventDefault) e.preventDefault();
-  onResize()
-  v_leftPannel.value.style.width = (e.clientX - v_leftPannel.value.offsetLeft) + 'px';
+  config.leftWidth = mouseX.value - v_leftPannel.value.offsetLeft
+  v_leftPannel.value.style.width = config.leftWidth + 'px';
+
+  config.elementWidth = v_top.value.clientWidth - config.leftWidth - config.rightWidth
+  v_centerRoot.value.style.width = config.elementWidth + 'px'
+
+  v_rightPannel.value.style.width = config.rightWidth + 'px'
+
   document.body.style.cursor = 'ew-resize'
 }
 
 let initResize = ()=>{
-  console.log("initResize")
-  window.addEventListener('mousemove',Resize,false);
+  window.addEventListener('mousemove',ResizeLeftPannel,false);
   window.addEventListener('mouseup',stopResize,false);
 }
 
 let stopResize = ()=>{
-  window.removeEventListener('mousemove', Resize, false);
+  window.removeEventListener('mousemove', ResizeLeftPannel, false);
   window.removeEventListener('mouseup', stopResize, false);
   document.body.style.cursor = 'default'
 }
@@ -123,26 +170,38 @@ let stopResize = ()=>{
 .top-layout {
   background-color: rgb(55, 56, 60);
   min-height: 100vh;
+  max-width: 100vw;
   display: flex;
   /* max-width: 80vw; */
 }
 .left-side{
-  width: 20%;
+  width: 600px;
   min-height: 100vh;
   height: 100%;
   display: inline-flex;
   position: relative;
 }
 .center{
-  width: 60vw;
-  margin-left: 10px;
-  margin-right: 5%;
+  /* width: 60vw; */
+  /* margin-left: 10px; */
+  /* margin-right: 10px; */
+}
+
+.center-viewer{
+  /* z-index: 1; */
+  position: fixed;
+  min-height: 100vh;
+  /* width: 100%; */
+  background-color: rgb(55, 56, 60);
+
 }
 .right-side{
-  width: 20%;
+  width: 300px;
   min-height: 100vh;
   height: 100%;
   display: inline-flex;
+  /* position: absolute; */
+
 }
 .justified-item {
   
