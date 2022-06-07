@@ -1,10 +1,10 @@
 <template>
   <div  ref="v_top" class="top-layout bg-slate-800">
-    <div ref="v_leftPannel" class="left-side  ">
+    <div ref="v_leftPannel" class="left-side  " :style="leftStyle">
       <span v-cloak>center width {{ config.elementWidth }}</span> 
       <div class="drag-handle h-full bg-slate-600 inline-flex hover:cursor-ew-resize" v-on:mousedown="initResize"></div>
     </div>
-    <div ref="v_centerRoot" class="center inline-flex flex-wrap" id="v_centerRoot" v-show="!open">
+    <div ref="v_centerRoot" class="center inline-flex flex-wrap" id="v_centerRoot" v-show="!open" :style="centerStyle">
       <div class="justified-item " v-for="(box, index) in layout" :key="index" :style="box.style" v-on:dblclick="selectItem(index)">
         <img class="w-full border-2 border-transparent box-content rounded-lg hover:border-blue-500" :src="box.item.url" :style="box.imgStyle">
         <div class="flex justify-center">
@@ -21,7 +21,7 @@
         <p>Hello from the modal!</p>
         <button @click="open = false">Close</button>
     </div>
-    <div ref="v_rightPannel" class="right-side">
+    <div ref="v_rightPannel" class="right-side" :style="rightStyle">
 
     </div>
 
@@ -35,49 +35,23 @@
 </template>
 
 <script setup>
-import justifiedLayout from 'justified-layout'
 import { reactive, onMounted, onUnmounted ,computed,watch,ref} from 'vue'
 import justify_config from '@/src/composables/getConfig.js'
 import getItems from '@/src/composables/items.js'
-let {config} = justify_config()
-let {items} = getItems()
+let {config,geometry,layout} = justify_config()
 
 
+
+/* ----- vue template ------*/
 const v_centerRoot = ref(null)
 const v_imageViewer = ref(null)
 const v_leftPannel = ref(null)
 const v_rightPannel = ref(null)
-
 const v_top = ref(null)
-const geometry = computed(() => {
-  if (!items) return {}
-  const opts = {
-    containerWidth: config.elementWidth-1,
-    ...config.options
-  }
-  return justifiedLayout(items, opts)
-})
-const layout = computed(() => {
-  if (!geometry.value.hasOwnProperty("boxes")) return []
-  return geometry.value.boxes.map((b, i) => ({
-    item: isNaN(items[i]) ? items[i] : {},
-    style: {
-      height: `${b.height+50}px`,
-      width: `${b.width}px`,
-      margin: `0px ${config.options.boxSpacing.horizontal / 2}px 0px ${config.options.boxSpacing.horizontal / 2}px `
-      // top: `${b.top}px`,
-      // left: `${b.left}px`,
-      // position: 'absolute'
-    },
-    imgStyle: {
-      height: `${b.height}px`,
-      // width: `${b.width}px`,
-      // margin: `0px ${config.options.boxSpacing.horizontal / 2}px 0px ${config.options.boxSpacing.horizontal / 2}px `
 
-    },
 
-  }))
-})
+
+
 const style = computed(() => {
   if (!geometry) return {}
   return {
@@ -86,7 +60,22 @@ const style = computed(() => {
   }
 })
 const centerStyle = computed(()=>{
-  return v_centerRoot.value.clientWidth - v_centerRoot.value.clientWidth - v_leftPannel.value.clientWidth
+  let style = {
+    width:`${config.totalWidth - config.leftWidth  - config.rightWidth}px`
+  }
+  return style
+})
+const leftStyle = computed(()=>{
+  let style = {
+    width:`${config.leftWidth}px`
+  }
+  return style
+})
+const rightStyle = computed(()=>{
+  let style = {
+    width:`${config.rightWidth}px`
+  }
+  return style
 })
 const row = computed(() => {
   let num_items = []
@@ -109,8 +98,9 @@ const onResize = () => {
   console.log("Center width",config.elementWidth)
   config.leftWidth = v_leftPannel.value.clientWidth
   config.rightWidth = v_rightPannel.value.clientWidth
-  config.elementWidth = v_top.value.clientWidth - config.leftWidth - config.rightWidth
-  v_centerRoot.value.style.width = config.elementWidth + 'px'
+  config.totalWidth = v_top.value.clientWidth
+  config.elementWidth = config.totalWidth - config.leftWidth - config.rightWidth
+  
 }
 
 const open = ref(false)
@@ -119,15 +109,22 @@ const selectItem = (key)=>{
   v_imageViewer.value.style.width = config.elementWidth + 'px'
 
 }
+
 onMounted(() => {
-  console.log("Mount",v_centerRoot.value.clientWidth)
-  // console.log("Center width",config.elementWidth)
-  config.elementWidth = v_top.value.clientWidth - config.leftWidth - config.rightWidth
+  
+  config.totalWidth = v_top.value.clientWidth
+  config.leftWidth = v_leftPannel.value.clientWidth
+  config.rightWidth = v_rightPannel.value.clientWidth
+  config.elementWidth = config.totalWidth - config.leftWidth - config.rightWidth
+  console.log("Total width",config.totalWidth)
   console.log("Center width",config.elementWidth)
+  console.log("Left width",config.leftWidth)
+  console.log("Right width",config.rightWidth)
+  
   window.addEventListener('resize', onResize)
   window.addEventListener('mousemove',mousePosition,false);
-
   onResize()
+
 })
 onUnmounted(() => {
   window.removeEventListener('resize', onResize)
@@ -143,13 +140,7 @@ let ResizeLeftPannel = (e)=>{
   if(e.stopPropagation) e.stopPropagation();
   if(e.preventDefault) e.preventDefault();
   config.leftWidth = mouseX.value - v_leftPannel.value.offsetLeft
-  v_leftPannel.value.style.width = config.leftWidth + 'px';
-
   config.elementWidth = v_top.value.clientWidth - config.leftWidth - config.rightWidth
-  v_centerRoot.value.style.width = config.elementWidth + 'px'
-
-  v_rightPannel.value.style.width = config.rightWidth + 'px'
-
   document.body.style.cursor = 'ew-resize'
 }
 
